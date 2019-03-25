@@ -12,12 +12,712 @@
 	<atom:link href="https://ljs.dev/feed/" rel="self" type="application/rss+xml" />
 	<link>http://ljs.dev/</link>
 	<description></description>
-	<lastBuildDate>Mon, 25 Mar 2019 14:19:16 +0000</lastBuildDate>
+	<lastBuildDate>Mon, 25 Mar 2019 17:06:46 +0000</lastBuildDate>
 	<language>en-US</language>
 	<sy:updatePeriod>hourly</sy:updatePeriod>
 	<sy:updateFrequency>1</sy:updateFrequency>
 	<generator>https://www.classicpress.net/?v=4.9.10-cp-1.0.1</generator>
 	<item>
+		<title>Huawei E3372 USB 3G/4G modem under OpenBSD 6.4</title>
+		<link>https://ljs.dev/huawei-e3372-usb-3g-4g-modem-under-openbsd-6-4/</link>
+		<pubDate>Thu, 13 Dec 2018 15:54:59 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+				<category><![CDATA[Dev Notes]]></category>
+
+		<guid isPermaLink="false">https://ljs.dev/?p=458</guid>
+		<description><![CDATA[Notes on getting connected to 3G/4G in Thailand on the dtac prepaid SIM obsd# gammu identify Device : /dev/cuaU0 Manufacturer : Huawei Model : E3372 (E3372) Firmware : 22.329.63.00.74 IMEI : 866785033700732 SIM IMSI : 520050314388175 Example smsd.conf loglevel = 7 user = _smsd pidfile = /var/run/smsd/smsd.pid infofile = /var/run/smsd/smsd.info logfile = /var/log/smsd/smsd.log [GSM1] device &#8230; <p class="link-more"><a href="https://ljs.dev/huawei-e3372-usb-3g-4g-modem-under-openbsd-6-4/" class="more-link">Continue reading<span class="screen-reader-text"> "Huawei E3372 USB 3G/4G modem under OpenBSD 6.4"</span></a></p>]]></description>
+				<content:encoded><![CDATA[<p>Notes on getting connected to 3G/4G in Thailand on the dtac prepaid SIM</p>
+<pre><code>obsd# gammu identify
+Device               : /dev/cuaU0
+Manufacturer         : Huawei
+Model                : E3372 (E3372)
+Firmware             : 22.329.63.00.74
+IMEI                 : 866785033700732
+SIM IMSI             : 520050314388175
+</code></pre>
+<p>Example <code>smsd.conf</code></p>
+<pre><code>loglevel = 7
+
+user = _smsd
+
+pidfile = /var/run/smsd/smsd.pid
+infofile = /var/run/smsd/smsd.info
+
+logfile = /var/log/smsd/smsd.log
+
+[GSM1]
+device = /dev/cuaU0
+
+init = AT^CURC=0
+
+# For this one I have set incoming=no so it doesn't pull
+# the existing messages off the phone.
+incoming = no
+rtscts = no
+baudrate = 115200
+eventhandler = /home/leon/smstoolsevents.sh
+send_delay = 20
+</code></pre>
+<p>And a simple script to log events <code>/home/leon/smstoolsevents.sh</code></p>
+<pre><code>
+
+#!/bin/ksh
+
+# script to react to events, like receiving an SMS
+
+echo '' &gt;&gt; /home/leon/logsmsevents
+echo 'received a message' &gt;&gt; /home/leon/logsmsevents
+
+
+</code></pre>
+<p><code>smsd</code> log with above settings gives the following when <code>smsd</code> is restarted:</p>
+<pre><code>2018-12-13 12:24:38,6, GSM1: Modem is registered to a roaming partner network                                                                                                             [79/2614]
+2018-12-13 12:24:38,2, smsd: Smsd mainprocess is awaiting the termination of all modem handlers. PID: 830.                                                                                        
+2018-12-13 12:24:38,2, GSM1: Modem handler 0 terminated. PID: 61548, was started 18-12-13 12:15:24, up 9 min.                                                                                     
+2018-12-13 12:24:38,2, smsd: Smsd mainprocess terminated. PID: 830, was started 18-12-13 12:15:24, up 9 min.                                                                                      
+2018-12-13 12:24:38,2, smsd: Smsd v3.1.21 started.
+2018-12-13 12:24:38,2, smsd: Running as _smsd:_smsd (590:590).
+2018-12-13 12:24:38,7, smsd: Running startup_check (shell): /var/spool/sms/incoming/smsd_script.FZMA0a /tmp/smsd_data.sP5YHd                                                                      
+2018-12-13 12:24:38,7, smsd: Done: startup_check (shell), execution time 0 sec., status: 0 (0)
+2018-12-13 12:24:38,4, smsd: File mode creation mask: 022 (0644, rw-r--r--).
+2018-12-13 12:24:38,5, GSM1: Modem handler 0 has started. PID: 50667.
+2018-12-13 12:24:38,5, GSM1: Using check_memory_method 1: CPMS is used.
+2018-12-13 12:24:38,5, smsd: Outgoing file checker has started. PID: 80713.
+2018-12-13 12:24:38,7, smsd: All PID's: 80713,50667
+2018-12-13 12:24:38,6, GSM1: Checking device for incoming SMS
+2018-12-13 12:24:38,6, GSM1: Checking if modem is ready
+2018-12-13 12:24:39,7, GSM1: -&gt; AT
+2018-12-13 12:24:39,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:39,7, GSM1: &lt;- OK
+2018-12-13 12:24:39,6, GSM1: Pre-initializing modem
+2018-12-13 12:24:39,7, GSM1: -&gt; ATE0
+2018-12-13 12:24:39,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:39,7, GSM1: &lt;- OK                                                                                                                                                                
+2018-12-13 12:24:39,7, GSM1: -&gt; AT+CMEE=1;+CREG=2
+2018-12-13 12:24:40,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:40,7, GSM1: &lt;- OK
+2018-12-13 12:24:40,6, GSM1: Checking if modem needs PIN
+2018-12-13 12:24:40,7, GSM1: -&gt; AT+CPIN?
+2018-12-13 12:24:40,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:40,7, GSM1: &lt;- +CPIN: READY OK
+2018-12-13 12:24:40,6, GSM1: Initializing modem
+2018-12-13 12:24:40,7, GSM1: -&gt; AT^CURC=0
+2018-12-13 12:24:41,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:41,7, GSM1: &lt;- OK
+2018-12-13 12:24:41,7, GSM1: -&gt; AT+CSQ
+2018-12-13 12:24:41,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:41,7, GSM1: &lt;- +CSQ: 22,99 OK
+2018-12-13 12:24:41,6, GSM1: Signal Strength Indicator: (22,99) -69 dBm (Excellent), Bit Error Rate: not known or not detectable                                                                  
+2018-12-13 12:24:41,6, GSM1: Checking if Modem is registered to the network
+2018-12-13 12:24:41,7, GSM1: -&gt; AT+CREG?
+2018-12-13 12:24:42,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:42,7, GSM1: &lt;- +CREG: 2,5,"792D","04947221" OK
+2018-12-13 12:24:42,6, GSM1: Modem is registered to a roaming partner network
+2018-12-13 12:24:42,6, GSM1: Location area code: 792D, Cell ID: 7221
+2018-12-13 12:24:42,7, GSM1: -&gt; AT+CSQ
+2018-12-13 12:24:42,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:42,7, GSM1: &lt;- +CSQ: 21,99 OK
+2018-12-13 12:24:42,6, GSM1: Signal Strength Indicator: (21,99) -71 dBm (Excellent), Bit Error Rate: not known or not detectable                                                                  
+2018-12-13 12:24:42,6, GSM1: Selecting PDU mode
+2018-12-13 12:24:42,7, GSM1: -&gt; AT+CMGF=0
+2018-12-13 12:24:42,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:42,7, GSM1: &lt;- OK
+2018-12-13 12:24:43,7, GSM1: -&gt; AT+CGSN
+2018-12-13 12:24:43,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:43,7, GSM1: &lt;- 866785033700732 OK                                                                                                                                        [26/2614]
+2018-12-13 12:24:43,5, GSM1: IMEI: 866785033700732
+2018-12-13 12:24:43,7, GSM1: -&gt; AT+CIMI
+2018-12-13 12:24:43,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:43,7, GSM1: &lt;- 520050314388175 OK
+2018-12-13 12:24:43,5, GSM1: IMSI: 520050314388175
+2018-12-13 12:24:43,6, GSM1: Checking if reading of messages is supported
+2018-12-13 12:24:43,7, GSM1: -&gt; AT+CPMS?
+2018-12-13 12:24:44,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:44,7, GSM1: &lt;- +CPMS: "ME",0,20,"ME",0,20,"ME",0,20 OK
+2018-12-13 12:24:44,6, GSM1: Checking memory size
+2018-12-13 12:24:44,7, GSM1: -&gt; AT+CPMS?
+2018-12-13 12:24:44,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:44,7, GSM1: &lt;- +CPMS: "ME",0,20,"ME",0,20,"ME",0,20 OK
+2018-12-13 12:24:44,6, GSM1: Used memory is 0 of 20
+2018-12-13 12:24:44,6, GSM1: No SMS received
+2018-12-13 12:24:54,6, GSM1: Checking device for incoming SMS
+2018-12-13 12:24:54,6, GSM1: Checking if modem is ready
+2018-12-13 12:24:54,7, GSM1: -&gt; AT
+2018-12-13 12:24:55,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:55,7, GSM1: &lt;- OK
+2018-12-13 12:24:55,6, GSM1: Pre-initializing modem
+2018-12-13 12:24:55,7, GSM1: -&gt; ATE0
+2018-12-13 12:24:55,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:55,7, GSM1: &lt;- OK
+2018-12-13 12:24:55,7, GSM1: -&gt; AT+CMEE=1;+CREG=2
+2018-12-13 12:24:56,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:56,7, GSM1: &lt;- OK
+2018-12-13 12:24:56,6, GSM1: Initializing modem
+2018-12-13 12:24:56,7, GSM1: -&gt; AT^CURC=0
+2018-12-13 12:24:56,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:56,7, GSM1: &lt;- OK
+2018-12-13 12:24:56,7, GSM1: -&gt; AT+CSQ
+2018-12-13 12:24:57,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:57,7, GSM1: &lt;- +CSQ: 21,99 OK
+2018-12-13 12:24:57,6, GSM1: Signal Strength Indicator: (21,99) -71 dBm (Excellent), Bit Error Rate: not known or not detectable                                                                  
+2018-12-13 12:24:57,6, GSM1: Checking if Modem is registered to the network
+2018-12-13 12:24:57,7, GSM1: -&gt; AT+CREG?
+2018-12-13 12:24:57,7, GSM1: Command is sent, waiting for the answer. (10)
+2018-12-13 12:24:57,7, GSM1: &lt;- +CREG: 2,5,"792D","04947221" OK
+2018-12-13 12:24:57,6, GSM1: Modem is registered to a roaming partner network
+2018-12-13 12:24:57,6, GSM1: Selecting PDU mode
+2018-12-13 12:24:57,7, GSM1: -&gt; AT+CMGF=0
+2018-12-13 12:24:57,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:57,7, GSM1: &lt;- OK
+2018-12-13 12:24:57,6, GSM1: Checking memory size
+2018-12-13 12:24:58,7, GSM1: -&gt; AT+CPMS?
+2018-12-13 12:24:58,7, GSM1: Command is sent, waiting for the answer. (5)
+2018-12-13 12:24:58,7, GSM1: &lt;- +CPMS: "ME",0,20,"ME",0,20,"ME",0,20 OK
+2018-12-13 12:24:58,6, GSM1: Used memory is 0 of 20
+2018-12-13 12:24:58,6, GSM1: No SMS received
+</code></pre>
+<p>and continues to poll</p>
+<p>Now, we need to set up pppd. Assuming that no received activation SMS is due to not registering on the data network yet, so leaving smsd running and will attempt the ppd setup</p>
+<p>Much talk is had about HiLink mode vs Stick mode.</p>
+<p>I decided to figure out what mine was being detected as:</p>
+<pre><code>obsd# usbdevs
+Controller /dev/usb0:
+addr 01: 8086:0000 Intel, xHCI root hub
+addr 02: 12d1:1442 HUAWEI_MOBILE, HUAWEI_MOBILE
+addr 03: 05ac:12aa Apple Inc., iPod
+Controller /dev/usb1:
+addr 01: 8086:0000 Intel, EHCI root hub
+addr 02: 8087:8000 Intel, Rate Matching Hub
+addr 03: 04f3:012d ELAN, Touchscreen
+addr 04: 04ca:7036 SC20A38485AA4C8E3D, Integrated Camera
+</code></pre>
+<p>Based on the above, it looks like we’re already operating in Stick mode, with <code>12d1:1442</code>, else assuming the support in umsm in OpenBSD for this device is handling the USB modeswitching automagically…</p>
+<p>Setting up the pppd stuff</p>
+<p>I have</p>
+<p>/etc/ppp/peers/e3372:</p>
+<pre><code>cuaU0
+115200
+debug
+noauth
+nocrtscts
+:10.254.254.1
+ipcp-accept-remote
+defaultroute
+user isp@cingulargprs.com
+demand
+active-filter 'not udp port 123'
+persist
+idle 600
+connect "/usr/sbin/chat -v -f /etc/ppp/dtac-chat"
+
+</code></pre>
+<p>/etc/ppp/dtac-chat:</p>
+<pre><code>TIMEOUT 10
+REPORT CONNECT
+ABORT BUSY
+ABORT 'NO CARRIER'
+ABORT ERROR
+'' ATZ OK AT&amp;F OK
+AT+CGDCONT=1,"IP","www.dtac.co.th" OK
+ATD*99***1# CONNECT
+
+</code></pre>
+<p>/etc/ppp/chap-secrets</p>
+<pre><code># Secrets for authentication using CHAP
+# client        server  secret                  IP addresses
+isp@cingulargprs.com    *       CINGULAR1
+
+</code></pre>
+<p>Finally, run</p>
+<p><code>ifconfig ppp0 create</code> (should be showing in ifconfig now) and then</p>
+<p><code>pppd e3372 call</code></p>
+<p>This doesn’t give me much, so I tail <code>/var/log/daemon</code>, resulting in:</p>
+<pre><code>Dec 13 13:09:29 obsd pppd[80914]: pppd 2.3.5 started by leon, uid 0
+Dec 13 13:09:29 obsd pppd[80914]: ioctl(TIOCSETD): Device not configured
+
+</code></pre>
+<p>A clue, when I try to manually talk to the modem, <code>cu -s 115200 -l cuaU0</code>, I get device is busy. So I stop the smsd daemon and try again:</p>
+<p>This time, it connects, but nothing is given back…whereas previously, I think I was able to type commands over the serial connection…</p>
+<p>To isolate the cause, I duplicated the peers/e3372 file with another with just these lines</p>
+<p>/etc/ppp/peers/dummytest</p>
+<pre><code>cuaU0
+115200
+debug
+</code></pre>
+<p>which got me one more line in the output:</p>
+<pre><code>Dec 13 13:40:24 obsd pppd[46299]: pppd 2.3.5 started by leon, uid 0
+Dec 13 13:40:27 obsd pppd[46299]: Serial connection established.
+Dec 13 13:40:28 obsd pppd[46299]: ioctl(TIOCSETD): Device not configured
+</code></pre>
+<p>I’m also seeing the device being disconnected at hangup and then re-detected:</p>
+<pre><code>Dec 13 13:40:32 obsd /bsd: ucom0 detached
+Dec 13 13:40:32 obsd /bsd: umsm0 detached
+Dec 13 13:40:32 obsd /bsd: umsm1 detached
+Dec 13 13:40:39 obsd /bsd: umsm0 at uhub0 port 2 configuration 1 interface 0 "HUAWEI_MOBILE HUAWEI_MOBILE" rev 2.10/1.02 addr 2                                                                   
+Dec 13 13:40:39 obsd /bsd: umsm0 detached
+Dec 13 13:40:39 obsd /bsd: umsm0 at uhub0 port 2 configuration 1 interface 0 "HUAWEI_MOBILE HUAWEI_MOBILE" rev 2.10/1.02 addr 2                                                                   
+Dec 13 13:40:39 obsd /bsd: ucom0 at umsm0
+Dec 13 13:40:39 obsd /bsd: umsm1 at uhub0 port 2 configuration 1 interface 1 "HUAWEI_MOBILE HUAWEI_MOBILE" rev 2.10/1.02 addr 2
+</code></pre>
+<p>So will continue adjusting that file or the ones it links to and see if we get any more output…</p>
+<p>Trying <code>cu</code> again, allowed some commands to come back from the modem, but no input was accepted:</p>
+<pre><code>obsd# cu -s 115200 -l cuaU0
+Connected to /dev/cuaU0 (speed 115200)
+
+^RSSI:20
+
+^HCSQ:"LTE",48,35,86,14
+
+^RSSI:1
+
+^HCSQ:"LTE",11,0,96,0
+
++CGREG: 5,"792D","04947221"
+
++CREG: 5,"792D","04947221"
+
+^RSSI:20
+
+^HCSQ:"LTE",48,37,91,18
+
+^RSSI:20
+
+^HCSQ:"LTE",48,36,91,16
+
+^RSSI:21
+
+^HCSQ:"LTE",50,36,86,14
+
+....
+
+
+^HCSQ:"LTE",54,41,111,16
+
+^RSSI:1
+
+^HCSQ:"LTE",11,0,106,0
+
++CGREG: 5,"007C","00B19502"
+
++CREG: 5,"007C","00B19502"
+
+^RSSI:25
+
+^HCSQ:"LTE",58,47,116,14
+
++CGREG: 1,"007C","00B19502"
+
++CREG: 1,"007C","00B19502"
+
+^XLEMA:1,2,112,0,1,fff
+
+^XLEMA:2,2,911,0,1,fff
+
+^NWTIME:18/12/13,06:20:04+28,00
+
+
+^EONS:0
+
++CGREG: 1,"792D","04947220"
+
++CREG: 1,"792D","04947220"
+
+^RSSI:20
+
+^HCSQ:"LTE",48,39,71,22
+
++CGREG: 5,"792D","04947220"
+
++CREG: 5,"792D","04947220"
+
+^XLEMA:1,2,112,0,1,fff
+
+^XLEMA:2,2,911,0,1,fff
+
+^NWTIME:18/12/13,06:20:08+28,00
+
+
+^EONS:0
+
+</code></pre>
+<p>This would appear that it’s getting real messages from the network.</p>
+<p>About to reboot, then try under Ubuntu live CD. Then try to get to the bottom of the</p>
+<blockquote><p>ioctl(TIOCSETD): Device not configured</p></blockquote>
+<p>Looking at <a href="https://gist.github.com/artizirk/20acc2ab07fe6cad9fcc">https://gist.github.com/artizirk/20acc2ab07fe6cad9fcc</a></p>
+<p>Will install <code>socat</code> and try sending some AT commands to get a better picture</p>
+<p><code>socat - /dev/cuaU0</code></p>
+<pre><code>ATI
+Manufacturer: huawei
+
+Model: E3372
+
+Revision: 22.329.63.00.74
+
+IMEI: 866785033700732
+
++GCAP: +CGSM,+DS,+ES
+
+
+
+OK
+
+AT + CSQ
+
+
++CSQ: 20,99
+# signal strength (over 19 is excellent)
+
+
+
+AT ^ CARDLOCK?
+
+
+^CARDLOCK: 2,10,0
+
+# shows modem is enabled
+
+AT ^ FHVER
+
+
+^FHVER:"E3372H-607 22.329.63.00.74,CL2E3372HM Ver.A"
+
+AT ^ VERSION?
+
+
+^VERSION:BDT:Apr 08 2018, 12:13:47
+
+^VERSION:EXTS:22.329.63.00.74
+
+^VERSION:INTS:
+
+^VERSION:EXTD:WEBUI_17.100.20.02.74_HILINK
+
+^VERSION:INTD:
+
+^VERSION:EXTH:CL2E3372HM Ver.A
+
+^VERSION:INTH:
+
+^VERSION:EXTU:E3372
+
+^VERSION:INTU:
+
+^VERSION:CFG:1004
+
+^VERSION:PRL:
+
+^VERSION:OEM:
+
+^VERSION:INI:
+
+
+
+OK
+
+</code></pre>
+<p>Finally, booted up an Ubuntu live image, which did the switchmode to “HiLink”, adding a new device to ifconfig</p>
+<p>This modified the device, as then booting back into OpenBSD, we have the cdce0 ethernet device showing. Adding a simple <code>/etc/hostname.cdce0</code> with <code>dhcp up</code> and a <code>sh /etc/netstart/</code> and we’re all good.</p>
+]]></content:encoded>
+			</item>
+		<item>
+		<title>Getting Snipcart custom data attributes into WordPress + Elementor Pricing Table</title>
+		<link>https://ljs.dev/getting-snipcart-custom-data-attributes-into-wordpress-elementor-pricing-table/</link>
+		<pubDate>Sat, 24 Nov 2018 16:02:29 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+				<category><![CDATA[Dev Notes]]></category>
+
+		<guid isPermaLink="false">https://ljs.dev/?p=462</guid>
+		<description><![CDATA[After shunning pagebuilders in WordPress long enough, I gave Elementor a try for a landing page layout and found it quite useful. I also realized how terribly far behind Gutenberg is! So, Elementor got me 90% of the way there, as is often the case in WordPress &#8211; simple, until it isn’t! Custom code in &#8230; <p class="link-more"><a href="https://ljs.dev/getting-snipcart-custom-data-attributes-into-wordpress-elementor-pricing-table/" class="more-link">Continue reading<span class="screen-reader-text"> "Getting Snipcart custom data attributes into WordPress + Elementor Pricing Table"</span></a></p>]]></description>
+				<content:encoded><![CDATA[<p>After shunning pagebuilders in WordPress long enough, I gave Elementor a try for a landing page layout and found it quite useful. I also realized how terribly far behind Gutenberg is!</p>
+<p>So, Elementor got me 90% of the way there, as is often the case in WordPress &#8211; simple, until it isn’t!</p>
+<p>Custom code in the theme’s <code>functions.php</code> got the last piece of the puzzle:</p>
+<pre><code class="language-php">function wp2static_snipcart_callback($buffer) {
+   $html_output = $buffer;
+
+   $dom = new DOMDocument();
+   $dom-&gt;loadHTML($html_output);
+
+   $finder = new DomXPath($dom);
+   $classname="elementor-price-table__button";
+   $nodes = $finder-&gt;query("//*[contains(@class, '$classname')]");
+
+   $yearly_buy_button = $nodes-&gt;item(1);
+
+   $yearly_buy_button-&gt;setAttribute('class','elementor-price-table__button elementor-button elementor-size-md snipcart-add-item');                                                                
+   $yearly_buy_button-&gt;setAttribute('data-item-name','PowerPack, unlimited sites, yearly');
+   $yearly_buy_button-&gt;setAttribute('data-item-id','powerpack-unlimited-yearly');
+   $yearly_buy_button-&gt;setAttribute('data-item-url','https://securityandperformance.com/');
+   $yearly_buy_button-&gt;setAttribute('data-item-price','99.00');
+   $yearly_buy_button-&gt;setAttribute('data-item-payment-interval','Year');
+   $yearly_buy_button-&gt;setAttribute('data-item-payment-interval-count','1');
+
+   $unlimited_buy_button = $nodes-&gt;item(2);
+
+   $unlimited_buy_button-&gt;setAttribute('class','elementor-price-table__button elementor-button elementor-size-md snipcart-add-item');                                                             
+   $unlimited_buy_button-&gt;setAttribute('data-item-name','PowerPack, unlimited sites, lifetime');
+   $unlimited_buy_button-&gt;setAttribute('data-item-id','powerpack-unlimited-lifetime');
+   $unlimited_buy_button-&gt;setAttribute('data-item-url','https://securityandperformance.com/');
+   $unlimited_buy_button-&gt;setAttribute('data-item-price','299.00');
+
+   return $dom-&gt;saveHTML();
+}
+
+add_filter( 'the_content', 'wp2static_snipcart_callback' );
+
+// duplicate with wp_styles for loaded CSS in frontend
+function insite_inspect_scripts() {
+global $wp_scripts; echo PHP_EOL.’’.PHP_EOL;
+}
+
+add_action( ‘wp_print_scripts’, ‘insite_inspect_scripts’ );
+</code></pre>
+]]></content:encoded>
+			</item>
+		<item>
+		<title>Low footprint tech hub</title>
+		<link>https://ljs.dev/low-footprint-tech-hub/</link>
+		<pubDate>Mon, 12 Nov 2018 16:13:18 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+				<category><![CDATA[Dev Notes]]></category>
+
+		<guid isPermaLink="false">https://ljs.dev/?p=465</guid>
+		<description><![CDATA[Aiming to create very low-cost, low-footprint self-contained workstations that can be deployed to areas lacking resources. A place you go to invest in knowledge and develop skills “The Knowledge Bank Network” Functions: knowledge bank offline WikiPedia, StackOverflow entertainment public domain movies, music, books, games communications share one connection Ideas to explore: raspberryPi control unit, acting &#8230; <p class="link-more"><a href="https://ljs.dev/low-footprint-tech-hub/" class="more-link">Continue reading<span class="screen-reader-text"> "Low footprint tech hub"</span></a></p>]]></description>
+				<content:encoded><![CDATA[<p>Aiming to create very low-cost, low-footprint self-contained workstations that can be deployed to areas lacking resources.</p>
+<p>A place you go to invest in knowledge and develop skills</p>
+<p>“The Knowledge Bank Network”</p>
+<p>Functions:</p>
+<ul>
+<li>knowledge bank
+<ul>
+<li>offline WikiPedia, StackOverflow</li>
+</ul>
+</li>
+<li>entertainment
+<ul>
+<li>public domain movies, music, books, games</li>
+</ul>
+</li>
+<li>communications
+<ul>
+<li>share one connection</li>
+</ul>
+</li>
+</ul>
+<p>Ideas to explore:</p>
+<p>raspberryPi control unit, acting as router, NAS &#8211; OpenBSD &#8211; dhcp &#8211; pf to share connection &#8211; local web server &#8211; shows network status &#8211; portal to documentation</p>
+<p>10 / 100 witches &#8211; should be an abundance &#8211; how much power do they consume?</p>
+<ul>
+<li>solar panels</li>
+<li>inverter</li>
+</ul>
+<p>Lowest possible power consumption target to minimize amount of solar/wind required</p>
+]]></content:encoded>
+			</item>
+		<item>
+		<title>Keep Your Core Strong &#8211; Know Your BSD/Linux Tools</title>
+		<link>https://ljs.dev/keep-your-core-strong-know-your-bsd-linux-tools/</link>
+		<pubDate>Wed, 07 Nov 2018 16:14:31 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+				<category><![CDATA[Dev Notes]]></category>
+
+		<guid isPermaLink="false">https://ljs.dev/?p=467</guid>
+		<description><![CDATA[Just as the sage advice from The Pragmatic Programmer on mastering one text editor makes so much sense for those of us whose majority of work is rearranging bits on the digital titanic, the same holds true for knowing your operating system and investing in solid tooling for your other main productive tasks. Opinionated preface &#8230; <p class="link-more"><a href="https://ljs.dev/keep-your-core-strong-know-your-bsd-linux-tools/" class="more-link">Continue reading<span class="screen-reader-text"> "Keep Your Core Strong &#8211; Know Your BSD/Linux Tools"</span></a></p>]]></description>
+				<content:encoded><![CDATA[<p>Just as the sage advice from <a href="https://pragprog.com/book/tpp/the-pragmatic-programmer">The Pragmatic Programmer</a> on mastering one text editor makes so much sense for those of us whose majority of work is rearranging bits on the digital titanic, the same holds true for knowing your operating system and investing in solid tooling for your other main productive tasks.</p>
+<h3 id="opinionated-preface-open-source-or-gtfo">Opinionated preface &#8211; Open source or GTFO</h3>
+<p>The world’s resources are quickly depleting. A growing population having to work sh!tty jobs for sh!tty companies selling sh!tty stuff is not sustainable and kinda hard to keep respecting yourself as a highly paid developer building yet another duplicated piece of software on VC funds.</p>
+<p>If the aim is to advance humanity and avoid depleting all the resources as population explodes, then we should be looking to re-use and not create uneccessarily. Open source software that’s been continually refined since the 60’s/70’s is continually being optimized and is able to run well on older hardware.</p>
+<p>We don’t need another One Laptop Per Child venture creating future ewaste when we already have an abundance of capable hardware. Let’s stop making batteries full of costly/harful chemicals and get more solar to continue running old laptops after their batteries have died.</p>
+<h3 id="on-with-the-show-the-core-utilities-i-invest-in-learning-well">On with the show &#8211; the core utilities I invest in learning well</h3>
+<p>This page serves a purpose to me as storing minimal configuration notes. I strive to not become dependent on too much customisation for the reasons:</p>
+<ul>
+<li>portability: the benefit of these tools are their ubiquitousness, I want the ability to grab any available device and quickly be productive without a day of setup or requiring of internet to pull down convoluted dotfiles libraries</li>
+<li>learn the tool well: you may be working around the original design of the software. If it’s really not there, consider contributing it to the project, or if it doesn’t belong there, look for another modular program to handle that responsibility</li>
+</ul>
+<h4 id="openbsd">OpenBSD</h4>
+<p>Slow is smooth and smooth is fast. Forgoing the bells, whistles and kitchen sink included in most Linux distros, OpenBSD has been planned with security and quality in mind. You’re not forced to read the docs, but you’ll soon realize it’s the most efficient path forward.</p>
+<p>Amazing support for older architectures and a great welcoming community.</p>
+<h3 id="japanese-support">Japanese support</h3>
+<p>Install relevant fcitx packages</p>
+<p>Install <code>ja-sazanami-ttf</code></p>
+<p>edit <code>$HOME/.config/fcitx/profile</code>, changing <code>anthy:False</code> to <code>anthy:True</code></p>
+<p>set shortcut key in <code>$HOME/.config/fcitx/config</code></p>
+<p>set XMODIFIERS in .xsession, along with fcitx-autostart before cwm</p>
+<p>xset fontpath</p>
+<h3 id="vim">Vim</h3>
+<p>My minimal .vimrc</p>
+<pre><code class="language-vimscript">set ts=2 sw=2 expandtab ruler nu noswapfile colorcolumn=80                      
+syntax on                                                                       
+colorscheme delek                                                               
+                                                                                
+autocmd Filetype php setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4       
+autocmd Filetype js setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2        
+                                                                                
+highlight ExtraWhitespace ctermbg=red guibg=red                                 
+match ExtraWhitespace /\s\+$/   
+
+" newly acquired skills
+set wildmenu " show search reuslts and such as popups
+set path+=** " set path to this folder and all subdirs, ie for searching
+
+</code></pre>
+<h3 id="git">git</h3>
+<p>My minimal .gitconfig</p>
+<pre><code>
+</code></pre>
+<h3 id="tmux">tmux</h3>
+<p>My minimal .tmux.conf</p>
+<pre><code># moving between panes
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# large history limit
+set -g history-limit 999999999
+</code></pre>
+<h3 id="httpd">httpd</h3>
+<p>Ensure you have required files from /etc in /var/www/etc chroot (copy all when lazy)</p>
+<h1 id="httpd-conf">httpd.conf</h1>
+<p>basic example</p>
+<pre><code>prefork 10
+
+types { include "/usr/share/misc/mime.types" }
+
+server "localhost" {
+	listen on * port 80
+
+	directory index "index.php"
+
+	root "/htdocs"
+
+	location "/*.css*" {
+		request no rewrite
+	}
+
+	location "/*.js*" {
+		request no rewrite
+	}
+
+	location "/*.png*" {
+		request no rewrite
+	}
+
+	location "/mystaticsite*" {
+		directory index "index.html"
+		request no rewrite
+	}
+
+	location "/*.php*" {
+		fastcgi socket "/run/php-fpm.sock"
+	}
+
+	location "/posts*" {
+		fastcgi socket "/run/php-fpm.sock"
+	}
+}
+</code></pre>
+<h1 id="php-conf">PHP conf</h1>
+<p>As per <a href="https://dev.to/nabbisen/fixing-php72fpm-on-openbsd-64-f0f">https://dev.to/nabbisen/fixing-php72fpm-on-openbsd-64-f0f</a>, we need to manually create the missing pool file in /etc/php-fpm.d/somefile.conf</p>
+<pre><code>; Start a new pool named 'www'.
+[www]
+
+; specify user
+user = www
+group = www
+listen.owner = www
+listen.group = www
+listen.mode = 0660
+
+chroot = /var/www
+
+listen = /var/www/run/php-fpm.sock
+
+; allow php execution on any URL
+security.limit_extensions = 
+
+; endpoint to monitor PHP FPM
+pm.status_path = /status
+
+; define process manager
+pm = dynamic
+pm.max_children = 9
+pm.max_spare_servers = 4
+pm.min_spare_servers = 2
+pm.start_servers = 3
+
+; help pinpoint slow scripts
+slowlog = /var/log/php-slow.log
+request_slowlog_timeout = 2s
+</code></pre>
+<h1 id="maria">maria</h1>
+<p>install server and client packages</p>
+<p>run <code>mysql_install_db</code></p>
+<p>reload and run <code>mysql_secure_installation</code></p>
+<p>create a non-root user</p>
+<p>connect via 127.0.0.1 vs localhost in WP config</p>
+<h1 id="wp">WP</h1>
+<h1 id="file-permissions">file permissions</h1>
+<p>TODO: currently 777’ing locally to allow watch script</p>
+<pre><code>find /var/www/htdocs -type d -exec chmod 775 {} \;
+find /var/www/htdocs -type f -exec chmod 755 {} \;
+chmod 400 /var/www/htdocs/wp-config.php
+</code></pre>
+<h1 id="watch-files">watch files</h1>
+<p>watch_me_sync.sh</p>
+<pre><code>#!/bin/sh                                                                       
+while :                                                                         
+do                                                                              
+    find $HOME/wordpress-static-html-plugin/ -type f ! -path '*/.*' |           
+    entr -d  sh $HOME/deploy_changed_file.sh /_                                 
+done 
+</code></pre>
+<h1 id="doas">doas</h1>
+<pre><code># run WP-CLI from same user as hitting from web
+permit persist MYUSERNAME as www cmd wp
+</code></pre>
+<p>deploy_changes_file.sh</p>
+<pre><code>#!/bin/sh                                                                       
+                                                                                
+CHANGED_FILE=$1                                                                 
+PROJECT_DIR=$HOME/wordpress-static-html-plugin/                                 
+BASENAME=${CHANGED_FILE#"$PROJECT_DIR"}                                         
+TARGET_PATH=/var/www/htdocs/wp-content/plugins/wordpress-static-html-plugin/${CHANGED_FILE#"$PROJECT_DIR"}
+TARGET_PATH2=/var/www/htdocs/securesite.local/wp-content/plugins/wordpress-static-html-plugin/${CHANGED_FILE#"$PROJECT_DIR"}
+TARGET_PATH3=/var/www/htdocs/subdirsite.local/wordpress/wp-content/plugins/wordpress-static-html-plugin/${CHANGED_FILE#"$PROJECT_DIR"}
+TARGET_PATH4=/var/www/htdocs/japanesesite.local/wp-content/plugins/wordpress-static-html-plugin/${CHANGED_FILE#"$PROJECT_DIR"}
+                                                                                
+echo "$BASENAME"                                                                
+                                                                                
+cp $CHANGED_FILE $TARGET_PATH                                                   
+cp $CHANGED_FILE $TARGET_PATH2                                                  
+cp $CHANGED_FILE $TARGET_PATH3                                                  
+cp $CHANGED_FILE $TARGET_PATH4                                                  
+                                                                                
+echo '' 
+</code></pre>
+<h3 id="coreutils">coreutils</h3>
+<p>Refer to the excellent man pages provided by OpenBSD or take a chance with the docs from whatever other OS you’re using.</p>
+<p>My minimal shell profile (bash by default)</p>
+<pre><code># enable viewing media offline
+function dla {                                                                  
+    # dl searched song to mp3                                                   
+    youtube-dl --extract-audio --no-mtime --audio-format mp3 --no-playlist --default-search ytsearch -o "~/Music/%(title)s.%(ext)s" "$*" 
+    if [ $? -eq 0 ]; then                                                       
+      # send newest file to smplayer playlist                                   
+      LATEST_FILE=$(ls -t *.mp3 | head -1)                                      
+      smplayer -add-to-playlist "$LATEST_FILE"                                  
+    else                                                                        
+        echo "failed to download"                                               
+    fi                                                                          
+} 
+
+# usage
+dla some title with spaces no need to surround with quotes
+</code></pre>
+<p>&nbsp;</p>
+]]></content:encoded>
+			</item>
+		<item>
 		<title>WordCamp Brisbane 2018 &#8211; WordPress as a Static Site Generator</title>
 		<link>https://ljs.dev/wordcamp-brisbane-2018-wordpress-as-a-static-site-generator/</link>
 		<comments>https://ljs.dev/wordcamp-brisbane-2018-wordpress-as-a-static-site-generator/#respond</comments>
@@ -109,6 +809,159 @@ to be a part of it!</p>
 			<wfw:commentRss>https://ljs.dev/wordcamp-brisbane-2018-wordpress-as-a-static-site-generator/feed/</wfw:commentRss>
 		<slash:comments>0</slash:comments>
 		</item>
+		<item>
+		<title>Tweaking the Bitnami WordPress Stack on AWS LightSail</title>
+		<link>https://ljs.dev/tweaking-the-bitnami-wordpress-stack-on-aws-lightsail/</link>
+		<pubDate>Wed, 17 Oct 2018 16:16:44 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+				<category><![CDATA[Dev Notes]]></category>
+
+		<guid isPermaLink="false">https://ljs.dev/?p=469</guid>
+		<description><![CDATA[Update: I no longer use Bitnami on AWS LightSail due to the steps required to get sane application behaviour and performance are not worth it. Leaving this up for any searches leading here and will recommend for a similar level of serviced hosting, try DigitalOcean or Vultr. Tired of clunkily updating a GitHub gist, herein &#8230; <p class="link-more"><a href="https://ljs.dev/tweaking-the-bitnami-wordpress-stack-on-aws-lightsail/" class="more-link">Continue reading<span class="screen-reader-text"> "Tweaking the Bitnami WordPress Stack on AWS LightSail"</span></a></p>]]></description>
+				<content:encoded><![CDATA[<p><strong>Update:</strong></p>
+<p>I no longer use Bitnami on AWS LightSail due to the steps required to get sane application behaviour and performance are not worth it. Leaving this up for any searches leading here and will recommend for a similar level of serviced hosting, try <a href="https://digitalocean.com">DigitalOcean</a> or <a href="https://vultr.com">Vultr</a>.</p>
+<p>Tired of clunkily updating a GitHub gist, herein lie my notes used when provisioning an AWS LightSail instance with Bitnami WordPress for quick migration/debugging of an existing user’s WordPress site.</p>
+<ul>
+<li>copy public key via the virtual terminal in AWS Console</li>
+<li>set a DNS entry to point dev domain to the instance’s IP</li>
+<li>access site at dev domain</li>
+<li>rm bitnami banner
+<ul>
+<li><code>sudo /opt/bitnami/apps/wordpress/bnconfig --disable_banner 1</code></li>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>SSH in using dev domain</li>
+<li><a href="https://metablogue.com/enable-lets-encrypt-ssl-aws-lightsail/">enable SSL</a>
+<ul>
+<li><code>sudo mkdir /opt/bitnami/letsencrypt</code></li>
+<li><code>cd /opt/bitnami/letsencrypt</code></li>
+<li><code>sudo wget https://dl.eff.org/certbot-auto</code></li>
+<li><code>sudo chmod a+x ./certbot-auto</code></li>
+<li><code>sudo ./certbot-auto</code></li>
+<li><code>sudo ./certbot-auto certonly --webroot -w /opt/bitnami/apps/wordpress/htdocs/ -d example.com</code></li>
+<li><code>sudo ln -s /etc/letsencrypt/live/[DOMAIN]/fullchain.pem /opt/bitnami/apache2/conf/server.crt</code></li>
+<li><code>sudo ln -s /etc/letsencrypt/live/[DOMAIN]/privkey.pem /opt/bitnami/apache2/conf/server.key</code></li>
+<li>Make sure that the certificate file name and path is correct. If you receive an error that file already exists, use the below command to rename the files:</li>
+<li><code>mv /opt/bitnami/apache2/conf/server.key /opt/bitnami/apache2/conf/serverkey.old</code></li>
+<li><code>mv /opt/bitnami/apache2/conf/server.crt /opt/bitnami/apache2/conf/servercrt.old</code></li>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>adjust wp-config to use https
+<ul>
+<li><code>sed -i 's/http/https/' /opt/bitnami/apps/wordpress/htdocs/wp-config.php</code></li>
+<li><code>sudo chown -R bitnami:daemon /opt/bitnami/apps/wordpress/htdocs/</code></li>
+</ul>
+</li>
+<li>force https in top of file: <code>/opt/bitnami/apps/wordpress/conf/httpd-prefix.conf</code>
+<ul>
+<li><code>RewriteEngine On</code></li>
+<li><code>RewriteCond %{HTTPS} !=on</code></li>
+<li><code>RewriteRule ^/(.*) https://%{SERVER_NAME}/$1 [R,L]</code></li>
+</ul>
+</li>
+<li>Restart server to enforce https
+<ul>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>backup wp-config somewhere
+<ul>
+<li><code>sudo cp /opt/bitnami/apps/wordpress/htdocs/wp-config.php /opt/bitnami/apps/wordpress/wp-config-backup-randstring.php</code></li>
+</ul>
+</li>
+<li>disable mod pagespeed
+<ul>
+<li><code>sudo vim /opt/bitnami/apache2/conf/pagespeed.conf</code></li>
+<li><code>ModPagespeed on</code> &gt; <code>ModPagespeed off</code></li>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>copy existing site’s files into WP dir</li>
+<li>backup existing wp-config
+<ul>
+<li><code>sudo cp /opt/bitnami/apps/wordpress/htdocs/wp-config.php<br />
+/opt/bitnami/apps/wordpress/user-original-wp-config-backup-randstring.php</code></li>
+</ul>
+</li>
+<li>restore Bitnami’s wp-config</li>
+<li>copy any custom <code>define</code>’s or code from existing wp-config</li>
+<li>import users DB
+<ul>
+<li>delete bitnami_wordpress</li>
+<li>create bitnami_wordpress</li>
+<li>import .sql</li>
+</ul>
+</li>
+<li>rewrite any hard links within DB
+<ul>
+<li><code>sudo wp --allow-root search-replace 'OLD.domain.com' 'NEW.wp2static.com'</code></li>
+</ul>
+</li>
+<li>change admin user email and pwd
+<ul>
+<li><code>sudo wp --allow-root user update 1 --user_pass="PASSWORD"</code></li>
+</ul>
+</li>
+<li>rewrite any hard links within site (optional, careful of mailto links, etc)
+<ul>
+<li><code>find -name '*.css' -exec sed -i 's/OLD.domain.com/NEW.wp2static.com/g' {} +</code></li>
+</ul>
+</li>
+<li>reset file permissions
+<ul>
+<li><code>sudo chown -R bitnami:daemon /opt/bitnami/apps/wordpress/htdocs/</code></li>
+<li><code>sudo find /opt/bitnami/apps/wordpress/htdocs/ -type f -exec chmod 664 {} \;</code></li>
+<li><code>sudo find /opt/bitnami/apps/wordpress/htdocs/ -type d -exec chmod 775 {} \;</code></li>
+<li>also php-fpm restart <code>sudo /opt/bitnami/ctlscript.sh restart php-fpm</code></li>
+</ul>
+</li>
+<li>enable debugging</li>
+</ul>
+<p><code>define( 'WP_DEBUG', true );</code></p>
+<p><strong>tailing WP logs</strong></p>
+<p><code>tail -f /opt/bitnami/apache2/logs/error_log</code></p>
+<p><strong>connect to db</strong></p>
+<p><code>mysql -u bn_wordpress -p bitnami_wordpress # and pwd from wp-config</code></p>
+<p><strong>check plugin options</strong></p>
+<p><code>select * from wp_options where option_name = 'wp-static-html-output-options' \G;</code></p>
+<ul>
+<li><code>working_directory</code> option can persist the old sever’s paths</li>
+</ul>
+<p><strong>modify PHP ini</strong></p>
+<h1 id="not-yet-needed-seems-to-have-large-max-execution-time-already">not yet needed, seems to have large <code>max_execution_time</code> already</h1>
+<ul>
+<li>disable opcache</li>
+<li>disable mod pagespeed</li>
+<li>use development level error logging</li>
+<li>increase memory</li>
+<li>extend max execution time</li>
+</ul>
+<p><code>sudo vim opt/bitnami/php/etc/php.ini</code></p>
+<p><strong>Basic Auth</strong></p>
+<p><a href="https://docs.bitnami.com/google/apps/wordpress-multisite/administration/use-htpasswd/">https://docs.bitnami.com/google/apps/wordpress-multisite/administration/use-htpasswd/</a></p>
+<p><strong>less noisy error log</strong></p>
+<p><code>sudo echo 'ErrorLogFormat "\n \"%M\" \n  "' &gt;&gt; /opt/bitnami/apache2/conf/httpd.conf</code></p>
+<p>^ needed re-rediting to affect the CR’s, look to fix</p>
+<h4 id="scratch-notes">Scratch notes</h4>
+<ul>
+<li>deal with <code>(70007) The timeout specified has expired</code> errors from <code>proxy_fcgi:error</code>:</li>
+</ul>
+<p><a href="https://stackoverflow.com/a/38711063/1668057">https://stackoverflow.com/a/38711063/1668057</a></p>
+<p><code>Timeout 900</code> -&gt;</p>
+<p>in <code>/opt/bitnami/apache2/conf/httpd.conf</code></p>
+<p><a href="https://medium.com/@sbuckpesch/apache2-and-php-fpm-performance-optimization-step-by-step-guide-1bfecf161534">https://medium.com/@sbuckpesch/apache2-and-php-fpm-performance-optimization-step-by-step-guide-1bfecf161534</a></p>
+<p><strong>import vim and tmux confs</strong></p>
+<p><code>curl<br />
+https://gist.githubusercontent.com/leonstafford/6891b76aeaf43766dd52676d6bed1b08/raw/9979e28a9abf07af94b505d35ff9a4eb3da7cb9f/.tmux.conf<br />
+--output ~/.tmux.conf</code></p>
+<p><code>curl<br />
+https://gist.githubusercontent.com/leonstafford/39333da3399adee7e88cb869b4685dff/raw/5e6e7b7fb834d996763da3d358d949d309691350/.vimrc<br />
+--output ~/.vimrc</code></p>
+<p>not working without additional domain verification overrides: &#8211; enable mail sending (consider Amazon has a limit for LightSail) not verified, erros with &#8211; <code>sudo apt install sendmail</code> &#8211; <code>sudo vim opt/bitnami/php/etc/php.ini</code> &#8211; uncomment <code>sendmail_path = "env -i /usr/sbin/sendmail -t -i"</code> &#8211; <code>sudo /opt/bitnami/ctlscript.sh restart apache</code></p>
+]]></content:encoded>
+			</item>
 		<item>
 		<title>Business to feed the family</title>
 		<link>https://ljs.dev/business-to-feed-the-family/</link>
@@ -1425,875 +2278,6 @@ to be a part of it!</p>
 		</div>
 		]]></content:encoded>
 	<enclosure url="http://open.live.bbc.co.uk/mediaselector/5/redir/version/2.0/mediaset/audio-nondrm-download/proto/http/vpid/p051dzjm.mp3" length="0" type="audio/mpeg" />
-		</item>
-		<item>
-		<title>What I believe</title>
-		<link>https://ljs.dev/what-i-believe/</link>
-		<pubDate>Thu, 25 May 2017 17:35:05 +0000</pubDate>
-		<dc:creator><![CDATA[admin]]></dc:creator>
-				<category><![CDATA[Essays]]></category>
-
-		<guid isPermaLink="false">https://ljs.dev/?p=353</guid>
-		<description><![CDATA[Leon Stafford About &#124; Speaking &#124; Blog &#124; Dev Notes &#124; Essays &#124; Contact Proofless acceptance and self-justification What I believe Written more for my children and partner to help understand my actions. Are questions more interesting than statements? “What’s the point?” can often be exasperated in moments of depression. Rather than it’s usual negative &#8230; <p class="link-more"><a href="https://ljs.dev/what-i-believe/" class="more-link">Continue reading<span class="screen-reader-text"> "What I believe"</span></a></p>]]></description>
-				<content:encoded><![CDATA[		<div data-elementor-type="post" data-elementor-id="353" class="elementor elementor-353" data-elementor-settings="[]">
-			<div class="elementor-inner">
-				<div class="elementor-section-wrap">
-							<section class="elementor-element elementor-element-756e09f7 elementor-section-content-middle elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="756e09f7" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-71857902 elementor-column elementor-col-33 elementor-top-column" data-id="71857902" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-3799d747 elementor-widget elementor-widget-heading" data-id="3799d747" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default"><a href="/">Leon Stafford</a></h2>		</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-27583a1e elementor-column elementor-col-33 elementor-top-column" data-id="27583a1e" data-element_type="column">
-			<div class="elementor-column-wrap">
-					<div class="elementor-widget-wrap">
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-2478dc25 elementor-column elementor-col-33 elementor-top-column" data-id="2478dc25" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-3ec8f4f4 elementor-widget elementor-widget-text-editor" data-id="3ec8f4f4" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><a href="/about">About</a> | <a href="/speaking">Speaking</a> | <a href="/blog/">Blog</a> | <a href="/dev-notes">Dev Notes</a> | <a href="/essays">Essays</a> | <a href="/contact/">Contact</a></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-418de7e1 elementor-section-height-min-height elementor-section-content-middle elementor-section-boxed elementor-section-height-default elementor-section-items-middle elementor-section elementor-top-section" data-id="418de7e1" data-element_type="section" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-16b15f1 elementor-column elementor-col-100 elementor-top-column" data-id="16b15f1" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-532dc962 elementor-widget elementor-widget-spacer" data-id="532dc962" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-2e3e7f83 elementor-widget elementor-widget-text-editor" data-id="2e3e7f83" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p>Proofless acceptance and self-justification</p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-5401039b elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="5401039b" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-7d96df87 elementor-column elementor-col-100 elementor-top-column" data-id="7d96df87" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-72dacdeb elementor-widget elementor-widget-heading" data-id="72dacdeb" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-xl">What I believe</h2>		</div>
-				</div>
-				<div class="elementor-element elementor-element-39e30614 elementor-widget elementor-widget-spacer" data-id="39e30614" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-21476e79 elementor-widget elementor-widget-text-editor" data-id="21476e79" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><em>Written more for my children and partner to help understand my actions.</em></p></div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-45e13c78 elementor-widget elementor-widget-text-editor" data-id="45e13c78" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><h2 id="are-questions-more-interesting-than-statements">Are questions more interesting than statements?</h2><p>“What’s the point?” can often be exasperated in moments of depression. Rather than it’s usual negative lamentation, leading to frustration at the lack of evidential answers, we can choose to embrace it for the beauty of its limitless depth.</p><h2 id="king-s-quest">King’s Quest</h2><p>Yep, I love referencing old computer games. I spent so many hours in youth watching television, playing computer games and otherwise being distracted without caring about the meaningless of life.</p><p>I started asking the big questions around 20, while being involved in volunteer work in Japan. It was the first time outside of the media that I was exposed to the victims of society. Seeing people walk over homeless without glancing or playing big brother to a sexually abused 8 year old boy. At first, I felt good for helping. Then I felt guilty about feeling good.</p><p>My mentor at the time gave me some sage advice as I questioned whether there was any such thing as a selfless act. He mentioned people finding different ways to feel alive, be it racing fast cars, doing extreme sports, making as much money as possible or giving to the less fortunate. Having tried all those things at times (less so, the extreme sports), none gave me a magical answer to my existence, but now coming back to giving of myself for others, it feels a more fulfilling way to spend the days.</p><h2 id="what-use-is-an-empty-cup">What use is an empty cup?</h2><p>During my initial stint of volunteerism, I encountered some adversity with visas, relationships and finances, which I felt was undeserved in the cosmic balance sheet after all my “selfless” acts. My love for humanity was definitely not unconditional then.</p><p>Fast-forward through 10 years of becoming a parent, struggling with working jobs I couldn’t believe in and being a blind consumer, I now find myself back on a track which fills my existential cup.</p><p>Love is something I hesitate to write about, as it’s still something I don’t really discuss amongst male friends, but here in static words, they can at least read it within their comfort zones. Integrity may be another useful word, in that being the kind of person you would want to be with/could love may define having self-integrity. Being able to love yourself has been expressed as a requisite to being able to love others, as opposed to the narcissist who though self-centered, may not be able to love themself, let alone anyone else.</p><p>Through years of working for people and companies whose products and services I don’t value as useful to society, I’ve been slowly losing this self-integrity. By acting out consumerist desires, having shallow relationships and otherwise living against my gut feelings, I fell out of love with myself. Time apart has been beneficial to my current meaningful partnership, but it is much harder to spend time apart from oneself in order to mend that most important of relationships.</p><h2 id="there-is-no-spoon">There is no spoon</h2><p>Over years of exposure to different people, cultures and philosophies, the most recent to really shake things up for me, were Camus’ philosophies on the meaninglessness of human existence. In the absurdist view of man being an inherently meaning-seeking creature in a meaningless world. His questions on why we get out of bed each day, expressed in The Myth of Sisyphus, and not just commit suicide upon realisation of the meaninglessness really made me think about things differently. It definitely threw me into some depressions, but also gave liberation from otherwise stress inducing situations.</p><p>Just as the world was for a long time considered to be flat or previously mysterious phenomena came to be reasoned with, I choose to believe that our existence is something as yet unable to be understood. And that’s fine for me. Without conclusive proof that life is meaningless, I choose to keep at least one leg over the side of the fence belonging to optimism.</p></div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-51a37cd2 elementor-widget elementor-widget-spacer" data-id="51a37cd2" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-70f97430 elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="70f97430" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-48b956e1 elementor-column elementor-col-100 elementor-top-column" data-id="48b956e1" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-5addd63e elementor-shape-rounded elementor-widget elementor-widget-social-icons" data-id="5addd63e" data-element_type="widget" data-widget_type="social-icons.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-social-icons-wrapper">
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-twitter" href="https://twitter.com/leonvolunteers" target="_blank">
-					<span class="elementor-screen-only">Twitter</span>
-					<i class="fa fa-twitter"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-github" href="https://github.com/leonstafford/" target="_blank">
-					<span class="elementor-screen-only">Github</span>
-					<i class="fa fa-github"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-stack-overflow" href="https://stackoverflow.com/users/story/1668057" target="_blank">
-					<span class="elementor-screen-only">Stack-overflow</span>
-					<i class="fa fa-stack-overflow"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-facebook" href="https://www.facebook.com/leonjefferystafford" target="_blank">
-					<span class="elementor-screen-only">Facebook</span>
-					<i class="fa fa-facebook"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-wordpress" href="https://wordpress.org/support/users/leonstafford/" target="_blank">
-					<span class="elementor-screen-only">Wordpress</span>
-					<i class="fa fa-wordpress"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-envelope" href="mailto:leon@wp2static.com" target="_blank">
-					<span class="elementor-screen-only">Envelope</span>
-					<i class="fa fa-envelope"></i>
-				</a>
-					</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-406d309e elementor-widget elementor-widget-spacer" data-id="406d309e" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-208951fd elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="208951fd" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-46ac192 elementor-column elementor-col-100 elementor-top-column" data-id="46ac192" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-41fd9269 elementor-widget elementor-widget-heading" data-id="41fd9269" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default">Site made with love of these open source tools</h2>		</div>
-				</div>
-				<section class="elementor-element elementor-element-253a880b elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-inner-section" data-id="253a880b" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-776c25f elementor-column elementor-col-20 elementor-inner-column" data-id="776c25f" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-466d1c6a elementor-widget elementor-widget-image" data-id="466d1c6a" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://www.openbsd.org/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/392px-OpenBSD_Logo_-_Cartoon_Puffy_with_textual_logo_below.svg.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-3486a29d elementor-widget elementor-widget-text-editor" data-id="3486a29d" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">The beautifully-crafted OS that forces you to learn how to do things properly.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-20ece556 elementor-column elementor-col-20 elementor-inner-column" data-id="20ece556" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-d2cd538 elementor-widget elementor-widget-image" data-id="d2cd538" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://www.classicpress.net/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/classicpress-1.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-7a91018 elementor-widget elementor-widget-text-editor" data-id="7a91018" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">For better or worse, WordPress powers 30% of the web. ClassicPress reduces some of the bloat.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-701705ec elementor-column elementor-col-20 elementor-inner-column" data-id="701705ec" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-565e08ec elementor-widget elementor-widget-image" data-id="565e08ec" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://www.vim.org/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/vim-2.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-69f7e014 elementor-widget elementor-widget-text-editor" data-id="69f7e014" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">Text is my material. Learn one text editor well.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-3e756346 elementor-column elementor-col-20 elementor-inner-column" data-id="3e756346" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-5bff831 elementor-widget elementor-widget-image" data-id="5bff831" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://git-scm.com/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/git.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-354682ad elementor-widget elementor-widget-text-editor" data-id="354682ad" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">Version controlling all the things.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-3595ab9 elementor-column elementor-col-20 elementor-inner-column" data-id="3595ab9" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-200259d0 elementor-widget elementor-widget-image" data-id="200259d0" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://github.com/tmux/tmux" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/tmux-1.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-5ef5eee6 elementor-widget elementor-widget-text-editor" data-id="5ef5eee6" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p>Retaining workspaces on local and remote servers.</p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-39a5354c elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="39a5354c" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-633e983 elementor-column elementor-col-100 elementor-top-column" data-id="633e983" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-1916c0a5 elementor-widget elementor-widget-heading" data-id="1916c0a5" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default"><a href="https://openbsd.amsterdam/">Hosted by OpenBSD Amsterdam</a></h2>		</div>
-				</div>
-				<div class="elementor-element elementor-element-7f11cf7f elementor-widget elementor-widget-text-editor" data-id="7f11cf7f" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">Supporting the OpenBSD community with opinionated VMs.  </span><span style="white-space: pre-wrap;">€10/yr donated to the OpenBSD Foundation. </span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-413d3d4e elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="413d3d4e" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-b4eff7 elementor-column elementor-col-100 elementor-top-column" data-id="b4eff7" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-73f56d9c elementor-widget elementor-widget-heading" data-id="73f56d9c" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default"><a href="https://openbsd.amsterdam/">Special Thanks</a></h2>		</div>
-				</div>
-				<div class="elementor-element elementor-element-30cdfa47 elementor-widget elementor-widget-text-editor" data-id="30cdfa47" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="white-space: pre-wrap;">To <a href="https://rgz.ee">Roman Zolotarev</a>, for helping us <em>Master the Web</em>. My family and friends for enduring my voluntary financial hardship while pursuing my passions.</span></p></div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-6bbbab2b elementor-widget elementor-widget-spacer" data-id="6bbbab2b" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-						</div>
-			</div>
-		</div>
-		]]></content:encoded>
-			</item>
-		<item>
-		<title>The true cost of everything</title>
-		<link>https://ljs.dev/the-true-cost-of-everything/</link>
-		<pubDate>Tue, 23 May 2017 17:37:30 +0000</pubDate>
-		<dc:creator><![CDATA[admin]]></dc:creator>
-				<category><![CDATA[Essays]]></category>
-
-		<guid isPermaLink="false">https://ljs.dev/?p=357</guid>
-		<description><![CDATA[Leon Stafford About &#124; Speaking &#124; Blog &#124; Dev Notes &#124; Essays &#124; Contact Should vegans become rocks to minimize their impact on the earth and our ears? The true cost of everything They may not answer in the affirmative to that, but where does their limit lie? Sidetrack &#8211; Extremes and balances I tend &#8230; <p class="link-more"><a href="https://ljs.dev/the-true-cost-of-everything/" class="more-link">Continue reading<span class="screen-reader-text"> "The true cost of everything"</span></a></p>]]></description>
-				<content:encoded><![CDATA[		<div data-elementor-type="post" data-elementor-id="357" class="elementor elementor-357" data-elementor-settings="[]">
-			<div class="elementor-inner">
-				<div class="elementor-section-wrap">
-							<section class="elementor-element elementor-element-4c60fe46 elementor-section-content-middle elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="4c60fe46" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-6ac3b89a elementor-column elementor-col-33 elementor-top-column" data-id="6ac3b89a" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-79501f0b elementor-widget elementor-widget-heading" data-id="79501f0b" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default"><a href="/">Leon Stafford</a></h2>		</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-4fdc7aeb elementor-column elementor-col-33 elementor-top-column" data-id="4fdc7aeb" data-element_type="column">
-			<div class="elementor-column-wrap">
-					<div class="elementor-widget-wrap">
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-3bf1a3ef elementor-column elementor-col-33 elementor-top-column" data-id="3bf1a3ef" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-2d0745d5 elementor-widget elementor-widget-text-editor" data-id="2d0745d5" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><a href="/about">About</a> | <a href="/speaking">Speaking</a> | <a href="/blog/">Blog</a> | <a href="/dev-notes">Dev Notes</a> | <a href="/essays">Essays</a> | <a href="/contact/">Contact</a></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-5c707756 elementor-section-height-min-height elementor-section-content-middle elementor-section-boxed elementor-section-height-default elementor-section-items-middle elementor-section elementor-top-section" data-id="5c707756" data-element_type="section" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-a790a elementor-column elementor-col-100 elementor-top-column" data-id="a790a" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-7cdadb1c elementor-widget elementor-widget-spacer" data-id="7cdadb1c" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-6440ef3d elementor-widget elementor-widget-text-editor" data-id="6440ef3d" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p>Should vegans become rocks to minimize their impact on the earth and our ears?</p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-56fc09fd elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="56fc09fd" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-3f9b11f9 elementor-column elementor-col-100 elementor-top-column" data-id="3f9b11f9" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-4cbeb4f1 elementor-widget elementor-widget-heading" data-id="4cbeb4f1" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-xl">The true cost of everything</h2>		</div>
-				</div>
-				<div class="elementor-element elementor-element-4fb58859 elementor-widget elementor-widget-spacer" data-id="4fb58859" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-1b24fad elementor-widget elementor-widget-text-editor" data-id="1b24fad" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><em>They may not answer in the affirmative to that, but where does their limit lie?</em></p></div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-4f3b56b6 elementor-widget elementor-widget-text-editor" data-id="4f3b56b6" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><h2 id="sidetrack-extremes-and-balances">Sidetrack &#8211; Extremes and balances</h2><p>I tend to look at and often live in extremes, something I’ve become more aware of with a partner who notices these kinds of things.</p><ul><li>a hoarder or my life’s in my backpack</li><li>obsessively vegan or binging on terrible food</li><li>procrastinating or melded to the computer</li></ul><p>The above highlight behaviours, but this also hits me when philosophizing about society and humanity.</p><ul><li>If someone recycles their household trash in an effort to reduce harmful waste, should they not then live in rammed earth homes, without appliances and grow their own food?</li><li>If one forgoes eating animals due to them being alive, should this not also extend to plants and the microbes in the water they consume?</li></ul><p>Perhaps my struggle with the concept of ideal balance, is then where does hypocrisy come into play?</p><blockquote><p>the practice of claiming to have higher standards or more noble beliefs than is the case</p></blockquote><p>OK, so perhaps that is only when someone claims to be doing a great service by recycling their plastic water bottles, when not buying into the bottled water industry would be more beneficial?</p><p>Granted, not as many people tell you about how great a recycler they are.</p><p>Vegans, on the other hand…</p><p>That maybe clears it up for me, I may have been judging people as hypocrites, when they weren’t openly claiming to be more noble than their actions.</p><p>So, let’s then get back to the humble act of recycling &#8211; how much is enough? How much would be enough to appease my societal judgements (even though, by doing so, I’m enobling myself to hypocrite status)?</p><p>In software development, we love to push back when receiving feedback that a webpage is “loading too slow”. The flaw being the “too”, implying there is some perfect yet unspoken amount of time that a webpage should load in. It is all <em>too</em> common to solicit “How many seconds should it load in?” to the reporter, only to receive “I don’t know, just not that slow!”. Instantly would be ideal, though theoretically impossible(?). A few milliseconds, then? Sure, but it will cost an extra $1 million for our site to load that quickly. OK, now we have another scale to slide along with our speed, we have cost. Maybe, in this case, we can throw quality in for the usual trifecta &#8211; we can load the webpage quicker if we take out some of the content and usefulness of it.</p><p>You can see where I’m heading now. Maybe the hypothetical person I previously judged harshly for their poor environmental net impact, has compromised on this one metric in order to boost others, which add value to society? Without going into the danger-zone of the meaning of life, let’s take a stab at the values of soceity: to survive and thrive? In this case, perhaps being a bit lackadaisical with polluting the environment the society needs for survival, is in order to make better progress in the sciences to keep us alive or to focus more on reproduction?</p><ul><li>buying a bottle of water saves a few minutes of drinking from the faucet, those minutes then make the difference to someone’s study time needed to achieve the next breakthrough for humanity?</li></ul><p>At a stretch, perhaps &#8211; depending on how much water this person drinks and how sciency they are. And if they were the one to discover the plastic eating wax worms &#8211; it may just balance out.</p><p>More often though, we can look outside (or within our own homes) and see many examples of an apparent compromise, or accepted level of complacency with regards to conservation of our human habitat.</p><p>A reminder here, that the author is just as culpable for having done/still doing these things:</p><ul><li>buying new LED lightbulbs to replace working tungstens</li><li>buying a new fuel-efficient car to replace one which needs a few repairs</li><li>installing solar panels and batteries to umm, save the planet?</li></ul><h2 id="should-we-revisit">Should we revisit?</h2><p>Questioning what people “should” do, again contains implicitness, just as we saw with “too”. I have to check myself and append an “… if …” to any statement I throw a “should” into. Breathing. We <em>should</em> breathe, <em>if</em> we want to remain alive. You <em>should</em> take your shoes off, <em>if</em> you don’t want to upset a cultural norm and offend someone or dirty up their floor.</p><p>So, to one of the original hypotheticals, about whether people should go to extremes with eliminating waste and polluting habits &#8211; we can probably step away from the middlepoint and find reasons that they should and shouldn’t go to the extremes.</p><p>People <em>should</em> live in mud huts and eat only what they can grow <em>if</em> they want to have minimal impact on the environment. (I’ll hold back from suggesting taking themselves out of the gene pool as the most minimal!).</p><p>People <em>shouldn’t</em> worry at all about consumption and waste production <em>if</em> they are prepared to eventually die out from loss of habitat or toxic poisoning.</p><p>This is where I get stuck in understanding balance/moderation/compromise. One might suggest a magical sweet spot, where we can live, producing waste, but without any ill-effect on our surviving or thriving goals of society. In a world, where we’re getting better at crunching big data, but are still discovering the effects we have on the natural world, I don’t believe we can define it yet.</p><h2 id="user-action-required">User action required</h2><p>I still love that <a href="https://en.wikiquote.org/wiki/Edmund_Burke#Disputed">disputed</a> quote:</p><blockquote><p>All that is necessary for the triumph of evil is that good men do nothing</p></blockquote><p><em>I’m starting to get interested in mathematics now, thanks to functional programming and the ability to express executable formulae, so that I can express and experiment with world-simulations around theories like these. For now, no magic formula, I’ll just use limited words.</em></p><p>Let’s say that the point that most people hit in their consumption and waste production falls to a negative 1.5 of the magical sweet spot where the environment is sustainable. We now need 1 <em>good</em> member of society to make twice as much positive effect for every 2 <em>bad</em> members of society, just to keep things running. What if it’s more like 10 or 100 people who are at the -1.5 rate of damaging the environment? That 101st person now has to do a <em>lot</em> more to counter the effects.</p><p>I think this is coming to be more of a personal call to arms that I can no longer deny (<em>can</em> being close to <em>should</em> here, in that there is an inherent <em>if</em> following).</p><p>I wake up everyday because I enjoy life enough to want to experience it. I enjoy the experiences of love and togetherness in society. Would I give up if the environment is so deterioted? <em>Should</em> I take action in order to protect what I enjoy?</p><p>Trying to express these feelings on the fly to people, I have a tendency to come across as overly negative, I think because I fail to show both sides simultaneously, usually focusing on one of the extremities. By writing it down, it allows me to show that maybe “Cynics are &#8211; beneath it all &#8211; only idealists with awkwardly high standards.” (thanks again, Alain de Botton!).</p><p>Questions for composing formulae:</p><ul><li>What is the average net impact of a human on the sustainability of our habitat? <a href="https://sustainability.stackexchange.com/q/6003/4312">You can answer here</a></li></ul></div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-5b1ac3d2 elementor-widget elementor-widget-spacer" data-id="5b1ac3d2" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-37ae6b50 elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="37ae6b50" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-1289bf85 elementor-column elementor-col-100 elementor-top-column" data-id="1289bf85" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-4d0187de elementor-shape-rounded elementor-widget elementor-widget-social-icons" data-id="4d0187de" data-element_type="widget" data-widget_type="social-icons.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-social-icons-wrapper">
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-twitter" href="https://twitter.com/leonvolunteers" target="_blank">
-					<span class="elementor-screen-only">Twitter</span>
-					<i class="fa fa-twitter"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-github" href="https://github.com/leonstafford/" target="_blank">
-					<span class="elementor-screen-only">Github</span>
-					<i class="fa fa-github"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-stack-overflow" href="https://stackoverflow.com/users/story/1668057" target="_blank">
-					<span class="elementor-screen-only">Stack-overflow</span>
-					<i class="fa fa-stack-overflow"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-facebook" href="https://www.facebook.com/leonjefferystafford" target="_blank">
-					<span class="elementor-screen-only">Facebook</span>
-					<i class="fa fa-facebook"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-wordpress" href="https://wordpress.org/support/users/leonstafford/" target="_blank">
-					<span class="elementor-screen-only">Wordpress</span>
-					<i class="fa fa-wordpress"></i>
-				</a>
-							<a class="elementor-icon elementor-social-icon elementor-social-icon-envelope" href="mailto:leon@wp2static.com" target="_blank">
-					<span class="elementor-screen-only">Envelope</span>
-					<i class="fa fa-envelope"></i>
-				</a>
-					</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-595d971f elementor-widget elementor-widget-spacer" data-id="595d971f" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-cf840cd elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="cf840cd" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-756e7737 elementor-column elementor-col-100 elementor-top-column" data-id="756e7737" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-25903468 elementor-widget elementor-widget-heading" data-id="25903468" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default">Site made with love of these open source tools</h2>		</div>
-				</div>
-				<section class="elementor-element elementor-element-119012ea elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-inner-section" data-id="119012ea" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-3ca3e0f7 elementor-column elementor-col-20 elementor-inner-column" data-id="3ca3e0f7" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-630e07d1 elementor-widget elementor-widget-image" data-id="630e07d1" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://www.openbsd.org/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/392px-OpenBSD_Logo_-_Cartoon_Puffy_with_textual_logo_below.svg.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-13114cbb elementor-widget elementor-widget-text-editor" data-id="13114cbb" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">The beautifully-crafted OS that forces you to learn how to do things properly.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-2491f6e6 elementor-column elementor-col-20 elementor-inner-column" data-id="2491f6e6" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-1424232f elementor-widget elementor-widget-image" data-id="1424232f" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://www.classicpress.net/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/classicpress-1.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-3e785560 elementor-widget elementor-widget-text-editor" data-id="3e785560" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">For better or worse, WordPress powers 30% of the web. ClassicPress reduces some of the bloat.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-4563d601 elementor-column elementor-col-20 elementor-inner-column" data-id="4563d601" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-1bacad5a elementor-widget elementor-widget-image" data-id="1bacad5a" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://www.vim.org/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/vim-2.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-30248ff2 elementor-widget elementor-widget-text-editor" data-id="30248ff2" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">Text is my material. Learn one text editor well.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-7e14cb69 elementor-column elementor-col-20 elementor-inner-column" data-id="7e14cb69" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-17813e54 elementor-widget elementor-widget-image" data-id="17813e54" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://git-scm.com/" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/git.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-45df91c2 elementor-widget elementor-widget-text-editor" data-id="45df91c2" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">Version controlling all the things.</span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-				<div class="elementor-element elementor-element-4801ec1 elementor-column elementor-col-20 elementor-inner-column" data-id="4801ec1" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-30957f81 elementor-widget elementor-widget-image" data-id="30957f81" data-element_type="widget" data-widget_type="image.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-image">
-											<a href="https://github.com/tmux/tmux" data-elementor-open-lightbox="">
-							<img width="300" height="195" src="https://ljs.dev/wp-content/uploads/2019/03/tmux-1.png" class="attachment-medium size-medium" alt="" sizes="100vw" />								</a>
-											</div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-162d471e elementor-widget elementor-widget-text-editor" data-id="162d471e" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p>Retaining workspaces on local and remote servers.</p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-53b11b5a elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="53b11b5a" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-1cd4b432 elementor-column elementor-col-100 elementor-top-column" data-id="1cd4b432" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-4e34f0c5 elementor-widget elementor-widget-heading" data-id="4e34f0c5" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default"><a href="https://openbsd.amsterdam/">Hosted by OpenBSD Amsterdam</a></h2>		</div>
-				</div>
-				<div class="elementor-element elementor-element-556eab55 elementor-widget elementor-widget-text-editor" data-id="556eab55" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="text-align: center; white-space: pre-wrap;">Supporting the OpenBSD community with opinionated VMs.  </span><span style="white-space: pre-wrap;">€10/yr donated to the OpenBSD Foundation. </span></p></div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-				<section class="elementor-element elementor-element-4e329351 elementor-section-boxed elementor-section-height-default elementor-section-height-default elementor-section elementor-top-section" data-id="4e329351" data-element_type="section">
-						<div class="elementor-container elementor-column-gap-default">
-				<div class="elementor-row">
-				<div class="elementor-element elementor-element-d38c0c3 elementor-column elementor-col-100 elementor-top-column" data-id="d38c0c3" data-element_type="column">
-			<div class="elementor-column-wrap  elementor-element-populated">
-					<div class="elementor-widget-wrap">
-				<div class="elementor-element elementor-element-442bc734 elementor-widget elementor-widget-heading" data-id="442bc734" data-element_type="widget" data-widget_type="heading.default">
-				<div class="elementor-widget-container">
-			<h2 class="elementor-heading-title elementor-size-default"><a href="https://openbsd.amsterdam/">Special Thanks</a></h2>		</div>
-				</div>
-				<div class="elementor-element elementor-element-78de33db elementor-widget elementor-widget-text-editor" data-id="78de33db" data-element_type="widget" data-widget_type="text-editor.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-text-editor elementor-clearfix"><p><span style="white-space: pre-wrap;">To <a href="https://rgz.ee">Roman Zolotarev</a>, for helping us <em>Master the Web</em>. My family and friends for enduring my voluntary financial hardship while pursuing my passions.</span></p></div>
-				</div>
-				</div>
-				<div class="elementor-element elementor-element-5e22eb19 elementor-widget elementor-widget-spacer" data-id="5e22eb19" data-element_type="widget" data-widget_type="spacer.default">
-				<div class="elementor-widget-container">
-					<div class="elementor-spacer">
-			<div class="elementor-spacer-inner"></div>
-		</div>
-				</div>
-				</div>
-						</div>
-			</div>
-		</div>
-						</div>
-			</div>
-		</section>
-						</div>
-			</div>
-		</div>
-		]]></content:encoded>
-			</item>
-		<item>
-		<title>Startups in Manila, Philippines</title>
-		<link>https://ljs.dev/startups-in-manila-philippines/</link>
-		<comments>https://ljs.dev/startups-in-manila-philippines/#respond</comments>
-		<pubDate>Sun, 17 Jun 2012 10:38:54 +0000</pubDate>
-		<dc:creator><![CDATA[admin]]></dc:creator>
-				<category><![CDATA[Blog]]></category>
-		<category><![CDATA[Uncategorized]]></category>
-
-		<guid isPermaLink="false">https://ljs.dev/?p=189</guid>
-		<description><![CDATA[AKA – Where have I been the last 4 months? Wow, where do I start? My last post left off with some late night snacks in office #2 for ZALORA Philippines, a Rocket Internet GmbH venture. Since then, we’ve moved offices again, largely to accommodate the ~100 developers I hired, along with a massive pool &#8230; <p class="link-more"><a href="https://ljs.dev/startups-in-manila-philippines/" class="more-link">Continue reading<span class="screen-reader-text"> "Startups in Manila, Philippines"</span></a></p>]]></description>
-				<content:encoded><![CDATA[<p><!-- wp:paragraph --></p>
-<p>AKA – Where have I been the last 4 months?</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Wow, where do I start? My last post left off with some late night snacks in office #2 for <a href="https://web.archive.org/web/20120701033049/http://zalora.com.ph/" target="_blank" rel="noreferrer noopener">ZALORA Philippines</a>, a <a href="https://web.archive.org/web/20120701033049/http://www.rocket-internet.de/?lang=en" target="_blank" rel="noreferrer noopener">Rocket Internet GmbH</a><br />
- venture. Since then, we’ve moved offices again, largely to accommodate<br />
-the ~100 developers I hired, along with a massive pool of image<br />
-retouchers and content writers, all servicing the Southeast Asian<br />
-expansion of the now popular ZALORA brand of online fashion.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Hiring developers for a startup is an exciting, fast paced adventure.<br />
- Hiring 100 developers, system engineers and software quality assurance<br />
-staff in a few months, I definitely learned a lot about the local<br />
-talent, Philippine’s labor law and industry competitiveness. The latter<br />
-of these bore the fruit of a Cease &amp; Desist letter from another<br />
-large development center here, along with other companies implementing<br />
-lock-down procedures on their staff once they knew a few had jumped ship<br />
- to the infamous Rocket Internet.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>The quality of developers available in Manila definitely varies, as<br />
-it does in any country, but for economic reasons, Manila is one of the<br />
-best places to setup a development team. English is spoken here as a<br />
-second language (ESL), a foreign language (EFL) as it is in any other<br />
-asian countries. The western influence here also means there is less<br />
-culture gap between Europeans and Pinoys as there is in say China or<br />
-Indonesia. Until recently though, most operations here have been over<br />
-exploiting the cheap labor force here and so many of the most talented<br />
-developers are either being swept up by higher paying companies in<br />
-Japan, Singapore, Australia, USA, etc. Those who can’t or don’t want to<br />
-travel often find the great opportunity and higher rates that<br />
-onlineĀ&nbsp;freelance work offers (as I’ve always been a big proponent of).</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>I’m very happy with the people who joined us in establishing one of<br />
-the biggest development centers in Manila and which should only grow to<br />
-serve the ever expanding network of Rocket Internet ventures globally.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Once hiring got to a certain point, it was time to really look at<br />
-optimizing development processes and balancing the agility of a startup<br />
-with the business demands of a company with many investors and<br />
-stakeholders. This is where I was definitely out of my comfort zone. I’d<br />
- managed small development teams and virtual products before, but here<br />
-we were with 100 developers, 8 products spread across asia, with<br />
-hundreds of staff on the ground in each country supporting operations,<br />
-liaising with stake holders in Singapore, China and head office in<br />
-Germany. Tensions were high with conflicting aims of the micro-managing<br />
-waterfall model of software development most familiar to traditional<br />
-project managers, while aiming to be a rapid, “agile” startup<br />
-development hub. It’s going to be an evolutionary process for quite a<br />
-while longer, but it is amazing to see how far things have come from<br />
-when the first few developers came on board around 3 months ago.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Other than my career with Rocket Internet, I’ve managed to find a few<br />
- hours recently to reconnect with my contacts in the social<br />
-entrepreneurial space here in Manila, doing a preliminary meeting for a<br />
-planned startup community which went well and ended as it should with<br />
-bbq and beer! Stay tuned for big announcements for the first official<br />
-event coming up soon. Startup founder friends and other key people are<br />
-already on board, as are a large number of developers, designers and<br />
-other talent ready to make a name for the Philippines as an emerging<br />
-tech startup scene.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Personally, my kids are back in school, I need to be back in the gym,<br />
- but have found a new stress relief in the form of pistol shooting.<br />
-Something I wouldn’t have imagined myself doing, but becoming highly<br />
-addicted to it thanks to a friend and his Glock .40 calibre. Time to<br />
-revisit my Tagalog lessons which were put on hold when joining the<br />
-startup blitz with Rocket Internet 4 months ago.</p>
-<p><!-- /wp:paragraph --></p>
-]]></content:encoded>
-			<wfw:commentRss>https://ljs.dev/startups-in-manila-philippines/feed/</wfw:commentRss>
-		<slash:comments>0</slash:comments>
-		</item>
-		<item>
-		<title>Pros and cons of working with Rocket Internet</title>
-		<link>https://ljs.dev/pros-and-cons-of-working-with-rocket-internet/</link>
-		<comments>https://ljs.dev/pros-and-cons-of-working-with-rocket-internet/#respond</comments>
-		<pubDate>Sun, 11 Mar 2012 10:37:29 +0000</pubDate>
-		<dc:creator><![CDATA[admin]]></dc:creator>
-				<category><![CDATA[Blog]]></category>
-		<category><![CDATA[Uncategorized]]></category>
-
-		<guid isPermaLink="false">https://ljs.dev/?p=186</guid>
-		<description><![CDATA[Starting with one of the pros above, which is being treated to a rack of ribs, chips, baked beans, garlic bread and like 7 different sauces from Racks in Manila. This is in reward for one of the cons – working late on Sunday night! I’ve always been a workaholic and dealt with short deadline &#8230; <p class="link-more"><a href="https://ljs.dev/pros-and-cons-of-working-with-rocket-internet/" class="more-link">Continue reading<span class="screen-reader-text"> "Pros and cons of working with Rocket Internet"</span></a></p>]]></description>
-				<content:encoded><![CDATA[<p><!-- wp:image {"id":187} --></p>
-<figure class="wp-block-image"><img src="https://ljs.dev/wp-content/uploads/2019/02/ribs.jpg" alt="" class="wp-image-187"/></figure>
-<p><!-- /wp:image --></p>
-<p><!-- wp:paragraph --></p>
-<p>Starting with one of the pros above, which is being treated to a rack<br />
- of ribs, chips, baked beans, garlic bread and like 7 different sauces<br />
-from Racks in Manila. This is in reward for one of the cons – working<br />
-late on Sunday night!</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>I’ve always been a workaholic and dealt with short deadline tasks for<br />
- lots of clients before, so the fast-paced chaos at one of the<br />
-internet’s most notorious start-up machines is right up my alley. <a href="https://web.archive.org/web/20120711205050/http://leonstafford.com/2012/03/11/pros-and-cons-of-working-with-rocket-internet/#more-683">Continue reading →</a></p>
-<p><!-- /wp:paragraph --></p>
-]]></content:encoded>
-			<wfw:commentRss>https://ljs.dev/pros-and-cons-of-working-with-rocket-internet/feed/</wfw:commentRss>
-		<slash:comments>0</slash:comments>
-		</item>
-		<item>
-		<title>1 x Senior &#038; 2 x Junior PHP Developer Positions in Manila</title>
-		<link>https://ljs.dev/1-x-senior-2-x-junior-php-developer-positions-in-manila/</link>
-		<comments>https://ljs.dev/1-x-senior-2-x-junior-php-developer-positions-in-manila/#respond</comments>
-		<pubDate>Tue, 07 Feb 2012 10:36:18 +0000</pubDate>
-		<dc:creator><![CDATA[admin]]></dc:creator>
-				<category><![CDATA[Blog]]></category>
-		<category><![CDATA[Uncategorized]]></category>
-
-		<guid isPermaLink="false">https://ljs.dev/?p=184</guid>
-		<description><![CDATA[I’m posting this here as a quick link to my developer friends in phpugph and Pinoy Freelancer Ako group on Facebook. I am making good connections here in the Philippines with various companies and from time to time will be able to share some sweet job details! 2 opportunities here with a big company (no &#8230; <p class="link-more"><a href="https://ljs.dev/1-x-senior-2-x-junior-php-developer-positions-in-manila/" class="more-link">Continue reading<span class="screen-reader-text"> "1 x Senior &#038; 2 x Junior PHP Developer Positions in Manila"</span></a></p>]]></description>
-				<content:encoded><![CDATA[<p><!-- wp:paragraph --></p>
-<p>I’m posting this here as a quick link to my developer friends in <a href="https://web.archive.org/web/20120711011244/http://phpugph.com/">phpugph </a>and <a href="https://web.archive.org/web/20120711011244/http://www.facebook.com/groups/pinoyfreelancerako/">Pinoy Freelancer Ako</a><br />
- group on Facebook. I am making good connections here in the Philippines<br />
- with various companies and from time to time will be able to share some<br />
- sweet job details!</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:image --></p>
-<figure class="wp-block-image"><img src="https://web.archive.org/web/20120711011244im_/http://leonstafford.com/wp-includes/images/smilies/icon_wink.gif" alt=";)"/></figure>
-<p><!-- /wp:image --></p>
-<p><!-- wp:paragraph --></p>
-<p>2 opportunities here with a big company (no names right now<br />
- ). A great opportunity with some good perks. Contact me directly if<br />
-interested and I’ll forward your resume along with a good word to the<br />
-hiring manager.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p><strong>Senior PHP Developer<br />
-</strong><em>(will send successful applicant for ~1 week overseas training!)</em></p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Your skills:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:list --></p>
-<ul>
-<li>You have extraordinary PHP skills with over 5 years’ experience</li>
-<li>You are familiar with OO PHP and have worked with PHP MVC frameworks (e.g. Zend, CakePHP, Yii)</li>
-<li>You are comfortable with cross platform XHTML, CSS and Javascript (jQuery a huge benefit)</li>
-<li>You are experienced building large applications built on the LAMP stack.</li>
-<li>You have working knowledge in the e-commerce space.</li>
-<li>You have basic knowledge of System Administration (Linux, Apache, nginx)</li>
-<li>You have a passion for high performance scalable design and database optimization.</li>
-<li>You have exposure to web services (REST &amp; SOAP)</li>
-<li>You enjoy programming within a highly motivated team</li>
-<li>You are open for new challenges such as Extreme Programming (XP) and Agile Modeling (Scrum or Kanban)</li>
-</ul>
-<p><!-- /wp:list --></p>
-<p><!-- wp:paragraph --></p>
-<p>Our offer:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:list --></p>
-<ul>
-<li>An attractive working environment in our Manila based office</li>
-<li>A dynamic and motivated team with flat hierarchies</li>
-<li>Challenging tasks and room for individual ideas</li>
-<li>Ability to work in other international markets</li>
-</ul>
-<p><!-- /wp:list --></p>
-<p><!-- wp:paragraph --></p>
-<p><strong>Junior PHP Developer</strong></p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Your skills:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:list --></p>
-<ul>
-<li>Ability to communicate across business and technical audiences</li>
-<li>IT graduate</li>
-<li>Ideally over 1 year experience in a professional environment</li>
-<li>Ability to trouble-shoot</li>
-<li>&nbsp;Must be a self-starter with the highest of professional standards</li>
-<li>Exposure to&nbsp; PHP 5, OO PHP, MVC Patterns, PHP Frameworks, Javascript, HTML and CSS</li>
-<li>Experience in developing and maintaining web based applications</li>
-<li>Integration experience including exposure to Mootools, Ajax &amp; API’s isn’t essential but any experience would be a plus!!</li>
-</ul>
-<p><!-- /wp:list --></p>
-<p><!-- wp:paragraph --></p>
-<p>Our Offer:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:list --></p>
-<ul>
-<li>Ongoing training and exposure to the latest technologies</li>
-<li>Mentoring from above and client exposure</li>
-<li>Ownership of projects</li>
-<li>Fantastic staff incentives</li>
-<li>Great work environment</li>
-<li>Flat structure and organic roles</li>
-</ul>
-<p><!-- /wp:list --></p>
-]]></content:encoded>
-			<wfw:commentRss>https://ljs.dev/1-x-senior-2-x-junior-php-developer-positions-in-manila/feed/</wfw:commentRss>
-		<slash:comments>0</slash:comments>
 		</item>
 	</channel>
 </rss>

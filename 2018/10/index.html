@@ -158,6 +158,159 @@ to be a part of it!</p>
 	
 </article>
 
+<article id="post-469" class="post-469 post type-post status-publish format-standard hentry category-dev-notes">
+		<header class="entry-header">
+		<div class="entry-meta"><span class="screen-reader-text">Posted on</span> <a href="https://ljs.dev/tweaking-the-bitnami-wordpress-stack-on-aws-lightsail/" rel="bookmark"><time class="entry-date published" datetime="2018-10-17T16:16:44+00:00">October 17, 2018</time><time class="updated" datetime="2019-03-25T16:22:13+00:00">March 25, 2019</time></a></div><h2 class="entry-title"><a href="https://ljs.dev/tweaking-the-bitnami-wordpress-stack-on-aws-lightsail/" rel="bookmark">Tweaking the Bitnami WordPress Stack on AWS LightSail</a></h2>	</header>
+
+	
+	<div class="entry-content">
+		<p><strong>Update:</strong></p>
+<p>I no longer use Bitnami on AWS LightSail due to the steps required to get sane application behaviour and performance are not worth it. Leaving this up for any searches leading here and will recommend for a similar level of serviced hosting, try <a href="https://digitalocean.com">DigitalOcean</a> or <a href="https://vultr.com">Vultr</a>.</p>
+<p>Tired of clunkily updating a GitHub gist, herein lie my notes used when provisioning an AWS LightSail instance with Bitnami WordPress for quick migration/debugging of an existing user’s WordPress site.</p>
+<ul>
+<li>copy public key via the virtual terminal in AWS Console</li>
+<li>set a DNS entry to point dev domain to the instance’s IP</li>
+<li>access site at dev domain</li>
+<li>rm bitnami banner
+<ul>
+<li><code>sudo /opt/bitnami/apps/wordpress/bnconfig --disable_banner 1</code></li>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>SSH in using dev domain</li>
+<li><a href="https://metablogue.com/enable-lets-encrypt-ssl-aws-lightsail/">enable SSL</a>
+<ul>
+<li><code>sudo mkdir /opt/bitnami/letsencrypt</code></li>
+<li><code>cd /opt/bitnami/letsencrypt</code></li>
+<li><code>sudo wget https://dl.eff.org/certbot-auto</code></li>
+<li><code>sudo chmod a+x ./certbot-auto</code></li>
+<li><code>sudo ./certbot-auto</code></li>
+<li><code>sudo ./certbot-auto certonly --webroot -w /opt/bitnami/apps/wordpress/htdocs/ -d example.com</code></li>
+<li><code>sudo ln -s /etc/letsencrypt/live/[DOMAIN]/fullchain.pem /opt/bitnami/apache2/conf/server.crt</code></li>
+<li><code>sudo ln -s /etc/letsencrypt/live/[DOMAIN]/privkey.pem /opt/bitnami/apache2/conf/server.key</code></li>
+<li>Make sure that the certificate file name and path is correct. If you receive an error that file already exists, use the below command to rename the files:</li>
+<li><code>mv /opt/bitnami/apache2/conf/server.key /opt/bitnami/apache2/conf/serverkey.old</code></li>
+<li><code>mv /opt/bitnami/apache2/conf/server.crt /opt/bitnami/apache2/conf/servercrt.old</code></li>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>adjust wp-config to use https
+<ul>
+<li><code>sed -i 's/http/https/' /opt/bitnami/apps/wordpress/htdocs/wp-config.php</code></li>
+<li><code>sudo chown -R bitnami:daemon /opt/bitnami/apps/wordpress/htdocs/</code></li>
+</ul>
+</li>
+<li>force https in top of file: <code>/opt/bitnami/apps/wordpress/conf/httpd-prefix.conf</code>
+<ul>
+<li><code>RewriteEngine On</code></li>
+<li><code>RewriteCond %{HTTPS} !=on</code></li>
+<li><code>RewriteRule ^/(.*) https://%{SERVER_NAME}/$1 [R,L]</code></li>
+</ul>
+</li>
+<li>Restart server to enforce https
+<ul>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>backup wp-config somewhere
+<ul>
+<li><code>sudo cp /opt/bitnami/apps/wordpress/htdocs/wp-config.php /opt/bitnami/apps/wordpress/wp-config-backup-randstring.php</code></li>
+</ul>
+</li>
+<li>disable mod pagespeed
+<ul>
+<li><code>sudo vim /opt/bitnami/apache2/conf/pagespeed.conf</code></li>
+<li><code>ModPagespeed on</code> > <code>ModPagespeed off</code></li>
+<li><code>sudo /opt/bitnami/ctlscript.sh restart apache</code></li>
+</ul>
+</li>
+<li>copy existing site’s files into WP dir</li>
+<li>backup existing wp-config
+<ul>
+<li><code>sudo cp /opt/bitnami/apps/wordpress/htdocs/wp-config.php<br>
+/opt/bitnami/apps/wordpress/user-original-wp-config-backup-randstring.php</code></li>
+</ul>
+</li>
+<li>restore Bitnami’s wp-config</li>
+<li>copy any custom <code>define</code>’s or code from existing wp-config</li>
+<li>import users DB
+<ul>
+<li>delete bitnami_wordpress</li>
+<li>create bitnami_wordpress</li>
+<li>import .sql</li>
+</ul>
+</li>
+<li>rewrite any hard links within DB
+<ul>
+<li><code>sudo wp --allow-root search-replace 'OLD.domain.com' 'NEW.wp2static.com'</code></li>
+</ul>
+</li>
+<li>change admin user email and pwd
+<ul>
+<li><code>sudo wp --allow-root user update 1 --user_pass="PASSWORD"</code></li>
+</ul>
+</li>
+<li>rewrite any hard links within site (optional, careful of mailto links, etc)
+<ul>
+<li><code>find -name '*.css' -exec sed -i 's/OLD.domain.com/NEW.wp2static.com/g' {} +</code></li>
+</ul>
+</li>
+<li>reset file permissions
+<ul>
+<li><code>sudo chown -R bitnami:daemon /opt/bitnami/apps/wordpress/htdocs/</code></li>
+<li><code>sudo find /opt/bitnami/apps/wordpress/htdocs/ -type f -exec chmod 664 {} \;</code></li>
+<li><code>sudo find /opt/bitnami/apps/wordpress/htdocs/ -type d -exec chmod 775 {} \;</code></li>
+<li>also php-fpm restart <code>sudo /opt/bitnami/ctlscript.sh restart php-fpm</code></li>
+</ul>
+</li>
+<li>enable debugging</li>
+</ul>
+<p><code>define( 'WP_DEBUG', true );</code></p>
+<p><strong>tailing WP logs</strong></p>
+<p><code>tail -f /opt/bitnami/apache2/logs/error_log</code></p>
+<p><strong>connect to db</strong></p>
+<p><code>mysql -u bn_wordpress -p bitnami_wordpress # and pwd from wp-config</code></p>
+<p><strong>check plugin options</strong></p>
+<p><code>select * from wp_options where option_name = 'wp-static-html-output-options' \G;</code></p>
+<ul>
+<li><code>working_directory</code> option can persist the old sever’s paths</li>
+</ul>
+<p><strong>modify PHP ini</strong></p>
+<h1 id="not-yet-needed-seems-to-have-large-max-execution-time-already">not yet needed, seems to have large <code>max_execution_time</code> already</h1>
+<ul>
+<li>disable opcache</li>
+<li>disable mod pagespeed</li>
+<li>use development level error logging</li>
+<li>increase memory</li>
+<li>extend max execution time</li>
+</ul>
+<p><code>sudo vim opt/bitnami/php/etc/php.ini</code></p>
+<p><strong>Basic Auth</strong></p>
+<p><a href="https://docs.bitnami.com/google/apps/wordpress-multisite/administration/use-htpasswd/">https://docs.bitnami.com/google/apps/wordpress-multisite/administration/use-htpasswd/</a></p>
+<p><strong>less noisy error log</strong></p>
+<p><code>sudo echo 'ErrorLogFormat "\n \"%M\" \n  "' >> /opt/bitnami/apache2/conf/httpd.conf</code></p>
+<p>^ needed re-rediting to affect the CR’s, look to fix</p>
+<h4 id="scratch-notes">Scratch notes</h4>
+<ul>
+<li>deal with <code>(70007) The timeout specified has expired</code> errors from <code>proxy_fcgi:error</code>:</li>
+</ul>
+<p><a href="https://stackoverflow.com/a/38711063/1668057">https://stackoverflow.com/a/38711063/1668057</a></p>
+<p><code>Timeout 900</code> -></p>
+<p>in <code>/opt/bitnami/apache2/conf/httpd.conf</code></p>
+<p><a href="https://medium.com/@sbuckpesch/apache2-and-php-fpm-performance-optimization-step-by-step-guide-1bfecf161534">https://medium.com/@sbuckpesch/apache2-and-php-fpm-performance-optimization-step-by-step-guide-1bfecf161534</a></p>
+<p><strong>import vim and tmux confs</strong></p>
+<p><code>curl<br>
+https://gist.githubusercontent.com/leonstafford/6891b76aeaf43766dd52676d6bed1b08/raw/9979e28a9abf07af94b505d35ff9a4eb3da7cb9f/.tmux.conf<br>
+--output ~/.tmux.conf</code></p>
+<p><code>curl<br>
+https://gist.githubusercontent.com/leonstafford/39333da3399adee7e88cb869b4685dff/raw/5e6e7b7fb834d996763da3d358d949d309691350/.vimrc<br>
+--output ~/.vimrc</code></p>
+<p>not working without additional domain verification overrides: – enable mail sending (consider Amazon has a limit for LightSail) not verified, erros with – <code>sudo apt install sendmail</code> – <code>sudo vim opt/bitnami/php/etc/php.ini</code> – uncomment <code>sendmail_path = "env -i /usr/sbin/sendmail -t -i"</code> – <code>sudo /opt/bitnami/ctlscript.sh restart apache</code></p>
+	</div>
+
+	
+</article>
+
 		</main>
 	</div>
 	
@@ -165,31 +318,33 @@ to be a part of it!</p>
 	<section id="search-2" class="widget widget_search">
 
 <form role="search" method="get" class="search-form" action="https://ljs.dev/">
-	<label for="search-form-5c98e3d45e4cd">
+	<label for="search-form-5c990b0dddabb">
 		<span class="screen-reader-text">Search for:</span>
 	</label>
-	<input type="search" id="search-form-5c98e3d45e4cd" class="search-field" placeholder="Search …" value="" name="s">
+	<input type="search" id="search-form-5c990b0dddabb" class="search-field" placeholder="Search …" value="" name="s">
 	<button type="submit" class="search-submit"><svg class="icon icon-search" aria-hidden="true" role="img"> <use href="#icon-search" xlink:href="#icon-search"></use> </svg><span class="screen-reader-text">Search</span></button>
 </form>
 </section>		<section id="recent-posts-2" class="widget widget_recent_entries">		<h2 class="widget-title">Recent Posts</h2>		<ul>
 											<li>
+					<a href="https://ljs.dev/huawei-e3372-usb-3g-4g-modem-under-openbsd-6-4/">Huawei E3372 USB 3G/4G modem under OpenBSD 6.4</a>
+									</li>
+											<li>
+					<a href="https://ljs.dev/getting-snipcart-custom-data-attributes-into-wordpress-elementor-pricing-table/">Getting Snipcart custom data attributes into WordPress + Elementor Pricing Table</a>
+									</li>
+											<li>
+					<a href="https://ljs.dev/low-footprint-tech-hub/">Low footprint tech hub</a>
+									</li>
+											<li>
+					<a href="https://ljs.dev/keep-your-core-strong-know-your-bsd-linux-tools/">Keep Your Core Strong – Know Your BSD/Linux Tools</a>
+									</li>
+											<li>
 					<a href="https://ljs.dev/wordcamp-brisbane-2018-wordpress-as-a-static-site-generator/">WordCamp Brisbane 2018 – WordPress as a Static Site Generator</a>
-									</li>
-											<li>
-					<a href="https://ljs.dev/business-to-feed-the-family/">Business to feed the family</a>
-									</li>
-											<li>
-					<a href="https://ljs.dev/persuasion-for-humanity/">Persuasion for humanity</a>
-									</li>
-											<li>
-					<a href="https://ljs.dev/short-distance-relationships/">Short distance relationships</a>
-									</li>
-											<li>
-					<a href="https://ljs.dev/focusing-at-different-levels/">Focusing at different levels</a>
 									</li>
 					</ul>
 		</section><section id="recent-comments-2" class="widget widget_recent_comments"><h2 class="widget-title">Recent Comments</h2><ul id="recentcomments"></ul></section><section id="archives-2" class="widget widget_archive"><h2 class="widget-title">Archives</h2>		<ul>
-			<li><a href="https://ljs.dev/2018/10/">October 2018</a></li>
+			<li><a href="https://ljs.dev/2018/12/">December 2018</a></li>
+	<li><a href="https://ljs.dev/2018/11/">November 2018</a></li>
+	<li><a href="https://ljs.dev/2018/10/">October 2018</a></li>
 	<li><a href="https://ljs.dev/2017/07/">July 2017</a></li>
 	<li><a href="https://ljs.dev/2017/06/">June 2017</a></li>
 	<li><a href="https://ljs.dev/2017/05/">May 2017</a></li>
@@ -214,6 +369,8 @@ to be a part of it!</p>
 		</ul>
 		</section><section id="categories-2" class="widget widget_categories"><h2 class="widget-title">Categories</h2>		<ul>
 	<li class="cat-item cat-item-2"><a href="https://ljs.dev/category/blog/">Blog</a>
+</li>
+	<li class="cat-item cat-item-9"><a href="https://ljs.dev/category/dev-notes/">Dev Notes</a>
 </li>
 	<li class="cat-item cat-item-5"><a href="https://ljs.dev/category/essays/">Essays</a>
 </li>
